@@ -1,0 +1,158 @@
+{% extends "service_app/admin_base.html" %}
+
+{% block content %}
+<h1>管理员面板</h1>
+
+<h2>订单列表</h2>
+<table border="1" cellspacing="0" cellpadding="8" width="100%">
+    <thead>
+        <tr style="background-color: #f2f2f2;">
+            <th>订单ID</th>
+            <th>客户</th>
+            <th>服务</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.customer_name }}</td>
+            <td>{{ order.service.name }}</td>
+            <td>
+                <span class="status-badge status-{{ order.status }}">
+                    {{ order.get_status_display }}
+                </span>
+            </td>
+            <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+            <td>
+                {% if order.status == 'pending' %}
+                    <form method="post" action="{% url 'accept_order' order.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="confirm-btn">确认接单</button>
+                    </form>
+                    <a href="{% url 'order_detail' order.id %}" class="view-btn">详情</a>
+                {% else %}
+                    <a href="{% url 'order_detail' order.id %}" class="view-btn">查看详情</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>服务类别</h2>
+<a href="{% url 'create_service' %}" class="create-btn">+ 新建服务类别</a>
+<table border="1" cellspacing="0" cellpadding="8" width="100%">
+    <thead>
+        <tr style="background-color: #f2f2f2;">
+            <th>服务名称</th>
+            <th>价格</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for service in services %}
+        <tr>
+            <td>{{ service.name }}</td>
+            <td>
+                {% if service.fixed_price %}
+                    {{ service.fixed_price }} {{ service.currency }}
+                {% else %}
+                    预付: {{ service.prepay_amount }} {{ service.currency }}
+                {% endif %}
+            </td>
+            <td><a href="{% url 'edit_service' service.id %}" class="edit-btn">编辑</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<style>
+/* 按钮样式 */
+.confirm-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 14px;
+}
+
+.view-btn {
+    background-color: #2196F3;
+    color: white;
+    padding: 6px 12px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    display: inline-block;
+}
+
+.create-btn {
+    background-color: #FF9800;
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+.edit-btn {
+    background-color: #9C27B0;
+    color: white;
+    padding: 6px 12px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* 状态标签样式 */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-pending {
+    background-color: #FFEB3B;
+    color: #000;
+}
+
+.status-in_progress {
+    background-color: #2196F3;
+    color: white;
+}
+
+.status-completed {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* 表格样式 */
+table {
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+th, td {
+    text-align: left;
+    padding: 12px;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+</style>
+{% endblock %}

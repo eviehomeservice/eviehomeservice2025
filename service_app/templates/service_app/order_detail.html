@@ -1,0 +1,165 @@
+{% extends "service_app/admin_base.html" %}
+
+{% block content %}
+<h1>订单详情</h1>
+<div class="order-details">
+    <div class="detail-row">
+        <span class="detail-label">订单ID:</span>
+        <span class="detail-value">{{ order.id }}</span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">订单编号:</span>
+        <span class="detail-value">{{ order.order_token }}</span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">服务名称:</span>
+        <span class="detail-value">{{ order.service.name }}</span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">状态:</span>
+        <span class="status-badge status-{{ order.status }}">
+            {{ order.get_status_display }}
+        </span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">联系人:</span>
+        <span class="detail-value">{{ order.customer_name }}</span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">服务日期:</span>
+        <span class="detail-value">{{ order.service_date }}</span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">服务地址:</span>
+        <span class="detail-value">{{ order.service_address }}</span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">联系方式:</span>
+        <span class="detail-value">
+            {% if order.contact_phone %}电话: {{ order.contact_phone }}{% endif %}
+            {% if order.contact_wechat %} 微信: {{ order.contact_wechat }}{% endif %}
+            {% if order.contact_email %} 邮箱: {{ order.contact_email }}{% endif %}
+        </span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">备注:</span>
+        <span class="detail-value">{{ order.notes }}</span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">价格:</span>
+        <span class="detail-value">{{ order.final_price }} {{ order.service.currency }}</span>
+    </div>
+
+    {% if order.payment_proof %}
+    <div class="detail-row">
+        <span class="detail-label">支付凭证:</span>
+        <span class="detail-value">
+            <img src="{{ order.payment_proof.url }}" width="200" class="proof-image">
+        </span>
+    </div>
+    {% endif %}
+
+    {% if order.status == 'pending' %}
+    <div class="action-buttons">
+        <form method="post" action="{% url 'accept_order' order.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn confirm-btn">确认接单</button>
+        </form>
+    </div>
+    {% elif order.status == 'in_progress' %}
+    <div class="action-buttons">
+        <form method="post" action="{% url 'complete_order' order.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn complete-btn">标记为已完成</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="back-link">
+        <a href="{% url 'admin_dashboard' %}" class="btn back-btn">返回仪表盘</a>
+    </div>
+</div>
+
+<style>
+.order-details {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-label {
+    font-weight: bold;
+    width: 120px;
+    color: #555;
+}
+
+.detail-value {
+    flex: 1;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.status-pending {
+    background-color: #FFEB3B;
+    color: #000;
+}
+
+.status-in_progress {
+    background-color: #2196F3;
+    color: white;
+}
+
+.status-completed {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.proof-image {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.action-buttons {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.back-link {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    text-decoration
+}
+
+{% if order.rating %}
+<h2>用户评价</h2>
+<p>评分：
+    {% for _ in "12345" %}
+        {% if forloop.counter <= order.rating %}★{% else %}☆{% endif %}
+    {% endfor %}
+</p>
+<p>评价内容：{{ order.feedback }}</p>
+{% endif %}

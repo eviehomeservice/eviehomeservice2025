@@ -1,0 +1,77 @@
+{% extends "service_app/admin_base.html" %}
+
+{% block content %}
+<h1>创建新服务</h1>
+<form method="post">
+    {% csrf_token %}
+    <div>
+        <label>服务名称:</label>
+        <input type="text" name="name" required>
+    </div>
+    <div>
+        <label>描述:</label>
+        <textarea name="description" required></textarea>
+    </div>
+    <div>
+        <label>步骤:</label>
+        <textarea name="steps" required></textarea>
+    </div>
+    <div>
+        <label>备注:</label>
+        <textarea name="notes"></textarea>
+    </div>
+    <div>
+        <label>价格类型:</label>
+        <select id="price_type" onchange="togglePriceFields()">
+            <option value="fixed">固定价格</option>
+            <option value="prepay">预付+询价</option>
+        </select>
+    </div>
+    <div id="fixed_price_field">
+        <label>固定价格:</label>
+        <input type="number" name="fixed_price" step="0.01">
+    </div>
+    <div id="prepay_field" style="display:none;">
+        <label>预付金额:</label>
+        <input type="number" name="prepay_amount" step="0.01">
+    </div>
+    <div>
+        <label>货币:</label>
+        <select name="currency">
+            <option value="CAD">CAD</option>
+            <option value="RMB">RMB</option>
+        </select>
+    </div>
+    
+    <h2>服务商信息</h2>
+    <div>
+        <label>服务商名称:</label>
+        <input type="text" name="provider_name" required>
+    </div>
+    <div>
+        <label>联系人:</label>
+        <input type="text" name="provider_contact" required>
+    </div>
+    <div>
+        <label>联系方式 (至少提供一种):</label><br>
+        电话: <input type="text" name="provider_phone"><br>
+        微信: <input type="text" name="provider_wechat"><br>
+        邮箱: <input type="email" name="provider_email">
+    </div>
+    
+    <button type="submit">创建服务</button>
+</form>
+
+<script>
+function togglePriceFields() {
+    var priceType = document.getElementById('price_type').value;
+    if (priceType === 'fixed') {
+        document.getElementById('fixed_price_field').style.display = 'block';
+        document.getElementById('prepay_field').style.display = 'none';
+    } else {
+        document.getElementById('fixed_price_field').style.display = 'none';
+        document.getElementById('prepay_field').style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "service_app/admin_base.html" %}
+
+{% block content %}
+<h1>编辑服务</h1>
+<form method="post">
+    {% csrf_token %}
+    <div>
+        <label>服务名称:</label>
+        <input type="text" name="name" value="{{ service.name }}" required>
+    </div>
+    <div>
+        <label>描述:</label>
+        <textarea name="description" required>{{ service.description }}</textarea>
+    </div>
+    <div>
+        <label>步骤:</label>
+        <textarea name="steps" required>{{ service.steps }}</textarea>
+    </div>
+    <div>
+        <label>备注:</label>
+        <textarea name="notes">{{ service.notes }}</textarea>
+    </div>
+    <div>
+        <label>价格类型:</label>
+        <select id="price_type" onchange="togglePriceFields()">
+            <option value="fixed" {% if service.fixed_price %}selected{% endif %}>固定价格</option>
+            <option value="prepay" {% if service.prepay_amount %}selected{% endif %}>预付+询价</option>
+        </select>
+    </div>
+    <div id="fixed_price_field" {% if not service.prepay_amount %}style="display:block;"{% else %}style="display:none;"{% endif %}>
+        <label>固定价格:</label>
+        <input type="number" name="fixed_price" step="0.01" value="{{ service.fixed_price|default:'' }}">
+    </div>
+    <div id="prepay_field" {% if service.prepay_amount %}style="display:block;"{% else %}style="display:none;"{% endif %}>
+        <label>预付金额:</label>
+        <input type="number" name="prepay_amount" step="0.01" value="{{ service.prepay_amount|default:'' }}">
+    </div>
+    <div>
+        <label>货币:</label>
+        <select name="currency">
+            <option value="CAD" {% if service.currency == 'CAD' %}selected{% endif %}>CAD</option>
+            <option value="RMB" {% if service.currency == 'RMB' %}selected{% endif %}>RMB</option>
+        </select>
+    </div>
+    
+    <h2>服务商信息</h2>
+    <div>
+        <label>服务商名称:</label>
+        <input type="text" name="provider_name" value="{{ service.provider_name }}" required>
+    </div>
+    <div>
+        <label>联系人:</label>
+        <input type="text" name="provider_contact" value="{{ service.provider_contact }}" required>
+    </div>
+    <div>
+        <label>联系方式:</label><br>
+        电话: <input type="text" name="provider_phone" value="{{ service.provider_phone|default:'' }}"><br>
+        微信: <input type="text" name="provider_wechat" value="{{ service.provider_wechat|default:'' }}"><br>
+        邮箱: <input type="email" name="provider_email" value="{{ service.provider_email|default:'' }}">
+    </div>
+    
+    <button type="submit">保存更改</button>
+</form>
+
+<script>
+function togglePriceFields() {
+    var priceType = document.getElementById('price_type').value;
+    if (priceType === 'fixed') {
+        document.getElementById('fixed_price_field').style.display = 'block';
+        document.getElementById('prepay_field').style.display = 'none';
+    } else {
+        document.getElementById('fixed_price_field').style.display = 'none';
+        document.getElementById('prepay_field').style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

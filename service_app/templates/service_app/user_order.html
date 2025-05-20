@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单详情 - EVIE安家服务平台</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+        }
+        .order-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .order-info {
+            margin-bottom: 30px;
+        }
+        .info-row {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .info-label {
+            font-weight: bold;
+            width: 120px;
+            color: #555;
+        }
+        .info-value {
+            flex: 1;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        .status-pending {
+            background-color: #FFEB3B;
+            color: #000;
+        }
+        .status-in_progress {
+            background-color: #2196F3;
+            color: white;
+        }
+        .status-completed {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .proof-image {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+            margin-top: 10px;
+        }
+        .upload-form {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .messages li {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+        .rating-stars {
+            font-size: 24px;
+            color: gold;
+            margin: 10px 0;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .back-link a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 600px) {
+            .info-row {
+                flex-direction: column;
+            }
+            .info-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="order-container">
+        <h1>订单详情</h1>
+        
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <div class="order-info">
+            <div class="info-row">
+                <div class="info-label">订单编号：</div>
+                <div class="info-value">{{ order.order_token }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">服务名称：</div>
+                <div class="info-value">{{ order.service.name }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">订单状态：</div>
+                <div class="info-value">
+                    <span class="status status-{{ order.status }}">
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">订单金额：</div>
+                <div class="info-value">{{ order.final_price }} {{ order.service.currency }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">联系人：</div>
+                <div class="info-value">{{ order.customer_name }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">服务日期：</div>
+                <div class="info-value">{{ order.service_date }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">服务地址：</div>
+                <div class="info-value">{{ order.service_address }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">联系方式：</div>
+                <div class="info-value">
+                    {% if order.contact_phone %}电话：{{ order.contact_phone }}<br>{% endif %}
+                    {% if order.contact_wechat %}微信：{{ order.contact_wechat }}<br>{% endif %}
+                    {% if order.contact_email %}邮箱：{{ order.contact_email }}{% endif %}
+                </div>
+            </div>
+            {% if order.notes %}
+            <div class="info-row">
+                <div class="info-label">备注信息：</div>
+                <div class="info-value">{{ order.notes }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if order.status == 'pending' %}
+        <div class="upload-form">
+            <h2>上传支付凭证</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="payment_proof">选择支付凭证图片：</label>
+                    <input type="file" name="payment_proof" id="payment_proof" accept="image/*" required>
+                </div>
+                <button type="submit">提交支付凭证</button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if order.payment_proof %}
+        <div class="info-row">
+            <div class="info-label">支付凭证：</div>
+            <div class="info-value">
+                <img src="{{ order.payment_proof.url }}" alt="支付凭证" class="proof-image">
+            </div>
+        </div>
+        {% endif %}
+
+        {% if order.status == 'in_progress' %}
+        <div class="order-info">
+            <h2>服务商信息</h2>
+            <div class="info-row">
+                <div class="info-label">服务商名称：</div>
+                <div class="info-value">{{ order.service.provider_name }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">联系方式：</div>
+                <div class="info-value">
+                    {% if order.service.provider_phone %}电话：{{ order.service.provider_phone }}<br>{% endif %}
+                    {% if order.service.provider_wechat %}微信：{{ order.service.provider_wechat }}<br>{% endif %}
+                    {% if order.service.provider_email %}邮箱：{{ order.service.provider_email }}{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if order.status == 'completed' %}
+        <div class="order-info">
+            <h2>服务已完成</h2>
+            {% if not order.rating %}
+            <form method="post" action="{% url 'user_complete_order' order.order_token %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="rating">服务评分 (1-5星)：</label>
+                    <select name="rating" id="rating" required>
+                        <option value="">请选择评分</option>
+                        <option value="5">★★★★★</option>
+                        <option value="4">★★★★☆</option>
+                        <option value="3">★★★☆☆</option>
+                        <option value="2">★★☆☆☆</option>
+                        <option value="1">★☆☆☆☆</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="feedback">服务评价：</label>
+                    <textarea name="feedback" id="feedback" rows="4" placeholder="请分享您的服务体验..."></textarea>
+                </div>
+                <button type="submit">提交评价</button>
+            </form>
+            {% else %}
+            <div class="info-row">
+                <div class="info-label">您的评分：</div>
+                <div class="info-value">
+                    <div class="rating-stars">
+                        {% for _ in "12345" %}
+                            {% if forloop.counter <= order.rating %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">您的评价：</div>
+                <div class="info-value">{{ order.feedback }}</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="back-link">
+            <a href="{% url 'service_list' %}?show_orders=1&phone={{ order.contact_phone }}">返回服务列表</a>
+        </div>
+    </div>
+
+    <script>
+        // 图片预览功能
+        document.addEventListener('DOMContentLoaded', function () {
+            const paymentInput = document.getElementById('payment_proof');
+            const previewContainer = document.getElementById('paymentPreview');
+
+            if (paymentInput) {
+                paymentInput.addEventListener('change', function () {
+                    previewContainer.innerHTML = '';
+
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        const reader = new FileReader();
+
+                        reader.onload = function (e) {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.className = 'proof-image';
+                            img.style.maxWidth = '200px';
+                            previewContainer.appendChild(img);
+                        };
+
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

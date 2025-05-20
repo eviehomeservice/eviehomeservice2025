@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EVIE管理后台</title>
+</head>
+<body>
+    <header>
+        <h1>EVIE安家服务平台 - 管理后台</h1>
+        <nav>
+            <a href="{% url 'admin_dashboard' %}">仪表盘</a> |
+            <a href="{% url 'create_service' %}">新建服务</a> |
+            <a href="/admin/">高级管理</a> |
+            <a href="/admin/logout/">退出</a>
+        </nav>
+    </header>
+    
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
