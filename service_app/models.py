@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from cloudinary.models import CloudinaryField
 
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100)
