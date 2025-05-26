@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.utils.dateparse import parse_date
 from datetime import date
 from django.http import JsonResponse
-
+from secrets import token_hex
 def service_list(request):
     services = ServiceCategory.objects.all()
     user_orders = []
@@ -44,7 +44,7 @@ def create_order(request, service_id):
                 notes=request.POST.get('notes', '').strip(),
                 status='pending',
                 final_price=service.fixed_price if service.fixed_price else service.prepay_amount,
-                order_token=str(uuid.uuid4().hex)  # 确保这里设置了order_token
+                order_token = token_hex(8)  # 生成16位订单号
             )
             
             # 修复：使用正确的重定向参数
