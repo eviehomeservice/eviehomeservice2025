@@ -164,7 +164,8 @@
             {% endfor %}
         </ul>
         {% endif %}
-        
+
+        {% if order %}
         <div class="order-info">
             <div class="info-row">
                 <div class="info-label">订单编号：</div>
@@ -214,45 +215,15 @@
             {% endif %}
         </div>
 
-        {% if order.status == 'pending' %}
-        <div class="upload-form">
-            <h2>上传支付凭证</h2>
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="payment_proof">选择支付凭证图片：</label>
-                    <input type="file" name="payment_proof" id="payment_proof" accept="image/*" required>
-                </div>
-                <button type="submit">提交支付凭证</button>
-            </form>
-        </div>
-        {% endif %}
-
-        {% if order.payment_proof %}
-        <div class="info-row">
-            <div class="info-label">支付凭证：</div>
-            <div class="info-value">
-                <img src="{{ order.payment_proof.url }}" alt="支付凭证" class="proof-image">
-            </div>
-        </div>
-        {% endif %}
-
-        {% if order.status == 'in_progress' %}
-        <div class="order-info">
-            <h2>服务商信息</h2>
+        {% if order.status == 'in_progress' or order.status == 'completed' %}
+            {% if order.payment_proof %}
             <div class="info-row">
-                <div class="info-label">服务商名称：</div>
-                <div class="info-value">{{ order.service.provider_name }}</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">联系方式：</div>
+                <div class="info-label">支付凭证：</div>
                 <div class="info-value">
-                    {% if order.service.provider_phone %}电话：{{ order.service.provider_phone }}<br>{% endif %}
-                    {% if order.service.provider_wechat %}微信：{{ order.service.provider_wechat }}<br>{% endif %}
-                    {% if order.service.provider_email %}邮箱：{{ order.service.provider_email }}{% endif %}
+                    <img src="{{ order.payment_proof.url }}" alt="支付凭证" class="proof-image">
                 </div>
             </div>
-        </div>
+            {% endif %}
         {% endif %}
 
         {% if order.status == 'completed' %}
@@ -296,39 +267,25 @@
             {% endif %}
         </div>
         {% endif %}
+        {% endif %}
+
+        {% if not order or order.status == 'pending' %}
+        <div class="upload-form">
+            <h2>上传支付凭证</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="payment_proof">选择支付凭证图片：</label>
+                    <input type="file" name="payment_proof" id="payment_proof" accept="image/*" required>
+                </div>
+                <button type="submit">提交支付凭证</button>
+            </form>
+        </div>
+        {% endif %}
 
         <div class="back-link">
-            <a href="{% url 'service_list' %}?show_orders=1&phone={{ order.contact_phone }}">返回服务列表</a>
+            <a href="{% url 'service_list' %}">返回服务列表</a>
         </div>
     </div>
-
-    <script>
-        // 图片预览功能
-        document.addEventListener('DOMContentLoaded', function () {
-            const paymentInput = document.getElementById('payment_proof');
-            const previewContainer = document.getElementById('paymentPreview');
-
-            if (paymentInput) {
-                paymentInput.addEventListener('change', function () {
-                    previewContainer.innerHTML = '';
-
-                    if (this.files && this.files[0]) {
-                        const file = this.files[0];
-                        const reader = new FileReader();
-
-                        reader.onload = function (e) {
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.className = 'proof-image';
-                            img.style.maxWidth = '200px';
-                            previewContainer.appendChild(img);
-                        };
-
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
-        });
-    </script>
 </body>
 </html>
