@@ -23,7 +23,6 @@ class ServiceCategory(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('pending', '待确认'),
         ('in_progress', '进行中'),
         ('completed', '已完成'),
     ]
