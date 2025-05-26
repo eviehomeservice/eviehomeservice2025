@@ -29,46 +29,80 @@ def user_service(request, service_id):
 
 def create_order(request, service_id):
     service = get_object_or_404(ServiceCategory, pk=service_id)
-    
+
     if request.method == 'POST':
         try:
-            # 创建订单对象
-            order = Order.objects.create(
-                service=service,
-                customer_name=request.POST.get('customer_name', '').strip(),
-                service_date=request.POST.get('service_date', '').strip(),
-                service_address=request.POST.get('service_address', '').strip(),
-                contact_phone=request.POST.get('contact_phone', '').strip(),
-                contact_email=request.POST.get('contact_email', '').strip(),
-                contact_wechat=request.POST.get('contact_wechat', '').strip(),
-                notes=request.POST.get('notes', '').strip(),
-                status='pending',
-                final_price=service.fixed_price if service.fixed_price else service.prepay_amount,
-                order_token = token_hex(8)  # 生成16位订单号
-            )
-            
-            # 修复：使用正确的重定向参数
-            return redirect('view_order', order_token=order.order_token)
-            
+            # 生成唯一订单 token
+            order_token = token_hex(8)
+
+            # 将数据暂存于 session
+            request.session['pending_order'] = {
+                'service_id': service.id,
+                'customer_name': request.POST.get('customer_name', '').strip(),
+                'service_date': request.POST.get('service_date', '').strip(),
+                'service_address': request.POST.get('service_address', '').strip(),
+                'contact_phone': request.POST.get('contact_phone', '').strip(),
+                'contact_email': request.POST.get('contact_email', '').strip(),
+                'contact_wechat': request.POST.get('contact_wechat', '').strip(),
+                'notes': request.POST.get('notes', '').strip(),
+                'final_price': str(service.fixed_price if service.fixed_price else service.prepay_amount),
+                'order_token': order_token
+            }
+            return redirect('view_order', order_token=order_token)
+
         except Exception as e:
             messages.error(request, f"创建订单失败: {str(e)}")
             return redirect('user_service', service_id=service_id)
-    
+
     return redirect('user_service', service_id=service_id)
 
 def view_order(request, order_token):
-    order = get_object_or_404(Order, order_token=order_token)
-    
-    if request.method == 'POST' and order.status == 'pending':
+    # 尝试先获取已保存订单
+    try:
+        order = Order.objects.get(order_token=order_token)
+    except Order.DoesNotExist:
+        order = None
+
+    if request.method == 'POST':
         if 'payment_proof' in request.FILES:
-            order.payment_proof = request.FILES['payment_proof']
-            order.save()
+            payment_proof = request.FILES['payment_proof']
+
+            # 若订单尚未创建，则从 session 获取信息并创建
+            if not order:
+                data = request.session.get('pending_order')
+                if not data or data['order_token'] != order_token:
+                    messages.error(request, "订单信息已过期，请重新提交。")
+                    return redirect('service_list')
+
+                service = get_object_or_404(ServiceCategory, id=data['service_id'])
+
+                order = Order.objects.create(
+                    service=service,
+                    customer_name=data['customer_name'],
+                    service_date=data['service_date'],
+                    service_address=data['service_address'],
+                    contact_phone=data['contact_phone'],
+                    contact_email=data['contact_email'],
+                    contact_wechat=data['contact_wechat'],
+                    notes=data['notes'],
+                    final_price=data['final_price'],
+                    payment_proof=payment_proof,
+                    order_token=order_token,
+                    status='in_progress'
+                )
+                del request.session['pending_order']
+            else:
+                order.payment_proof = payment_proof
+                order.status = 'in_progress'
+                order.save()
+
             messages.success(request, "支付凭证已上传成功")
             return redirect('view_order', order_token=order_token)
         else:
             messages.error(request, "请选择支付凭证文件")
-    
+
     return render(request, 'service_app/user_order.html', {'order': order})
+
 
 @staff_member_required
 def admin_dashboard(request):
