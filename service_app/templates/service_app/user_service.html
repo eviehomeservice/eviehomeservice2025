@@ -31,26 +31,6 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
-        .messages {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0;
-        }
-        .messages li {
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-        .error {
-            background-color: #ffebee;
-            color: #c62828;
-            border-left: 4px solid #c62828;
-        }
-        .success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border-left: 4px solid #2e7d32;
-        }
         form {
             background: white;
             padding: 25px;
@@ -83,24 +63,9 @@
             box-sizing: border-box;
             transition: border 0.3s;
         }
-        input[type="text"]:focus,
-        input[type="date"]:focus,
-        input[type="email"]:focus,
-        textarea:focus {
-            border-color: #3498db;
-            outline: none;
-            box-shadow: 0 0 5px rgba(52,152,219,0.3);
-        }
         textarea {
             height: 120px;
             resize: vertical;
-        }
-        .contact-method {
-            margin-bottom: 15px;
-        }
-        .contact-method label {
-            display: inline-block;
-            width: 80px;
         }
         button {
             background-color: #3498db;
@@ -117,16 +82,25 @@
         button:hover {
             background-color: #2980b9;
         }
-        .error-message {
-            color: #e53935;
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
+        .payment-options {
+            margin-top: 20px;
+        }
+        .payment-option {
+            margin-bottom: 10px;
+        }
+        .qr-code {
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 6px;
+            background: #fff;
+        }
+        .qr-code img {
+            max-width: 200px;
+            display: block;
+            margin: 0 auto;
         }
         @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
             form {
                 padding: 15px;
             }
@@ -135,17 +109,17 @@
 </head>
 <body>
     <h1>{{ service.name }}</h1>
-    
+
     <div class="service-detail">
         <h2>服务描述</h2>
         <p>{{ service.description }}</p>
-        
+
         <h2>服务步骤</h2>
         <p>{{ service.steps }}</p>
-        
+
         <h2>注意事项</h2>
         <p>{{ service.notes }}</p>
-        
+
         <h2>价格</h2>
         <p>
             {% if service.fixed_price %}
@@ -166,124 +140,56 @@
 
     <form method="post" action="{% url 'create_order' service.id %}" id="orderForm" novalidate>
         {% csrf_token %}
-        
+
         <div class="form-group">
             <label class="required">联系人姓名</label>
-            <input type="text" name="customer_name" id="customer_name" required
-                   placeholder="请输入您的姓名">
-            <div class="error-message" id="name-error">请输入联系人姓名</div>
+            <input type="text" name="customer_name" required placeholder="请输入您的姓名">
         </div>
-        
+
         <div class="form-group">
             <label class="required">服务日期</label>
-            <input type="date" name="service_date" id="service_date" required
-                   min="{{ today|date:'Y-m-d' }}"
-                   onchange="validateDate(this)">
-            <div class="error-message" id="date-error">请选择有效日期（不能早于今天）</div>
+            <input type="date" name="service_date" min="{{ today|date:'Y-m-d' }}" required>
         </div>
-        
+
         <div class="form-group">
             <label class="required">服务地址</label>
-            <textarea name="service_address" id="service_address" required
-                      placeholder="请输入详细的服务地址"></textarea>
-            <div class="error-message" id="address-error">请输入服务地址</div>
+            <textarea name="service_address" required placeholder="请输入详细的服务地址"></textarea>
         </div>
-        
+
         <div class="form-group">
-            <label class="required">联系方式</label>
-            <div class="contact-method">
-                <label for="contact_phone">电话</label>
-                <input type="text" name="contact_phone" id="contact_phone" required
-                       placeholder="请输入联系电话">
-            </div>
-            <div class="contact-method">
-                <label for="contact_wechat">微信</label>
-                <input type="text" name="contact_wechat" id="contact_wechat"
-                       placeholder="选填">
-            </div>
-            <div class="contact-method">
-                <label for="contact_email">邮箱</label>
-                <input type="email" name="contact_email" id="contact_email"
-                       placeholder="选填">
-            </div>
-            <div class="error-message" id="contact-error">请至少提供一种联系方式</div>
+            <label class="required">联系电话</label>
+            <input type="text" name="contact_phone" required>
         </div>
-        
+
+        <div class="form-group">
+            <label>微信</label>
+            <input type="text" name="contact_wechat">
+        </div>
+
+        <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" name="contact_email">
+        </div>
+
         <div class="form-group">
             <label>备注信息</label>
-            <textarea name="notes" id="notes" 
-                      placeholder="如有特殊需求请在此说明（选填）"></textarea>
+            <textarea name="notes" placeholder="如有特殊需求请在此说明（选填）"></textarea>
         </div>
-        
-        <button type="submit" id="submit-btn">提交订单</button>
+
+        <div class="form-group payment-options">
+            <label class="required">请选择支付方式</label>
+            <div class="payment-option">
+                <label><input type="radio" name="payment_method" value="interac" required> Interac e-Transfer 到 <strong>angelahopejie@gmail.com</strong></label>
+            </div>
+            <div class="payment-option">
+                <label><input type="radio" name="payment_method" value="wechat" required> 微信支付</label>
+                <div class="qr-code">
+                    <img src="/static/images/wechat_qr.png" alt="微信支付二维码">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit">提交订单</button>
     </form>
-
-    <script>
-        // 日期验证
-        function validateDate(input) {
-            const errorElement = document.getElementById('date-error');
-            const selectedDate = new Date(input.value);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            if (selectedDate < today) {
-                errorElement.style.display = 'block';
-                input.value = '';
-            } else {
-                errorElement.style.display = 'none';
-            }
-        }
-
-        // 表单提交验证
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
-            let isValid = true;
-            
-            // 验证必填字段
-            const name = document.getElementById('customer_name');
-            if (!name.value.trim()) {
-                document.getElementById('name-error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('name-error').style.display = 'none';
-            }
-            
-            const date = document.getElementById('service_date');
-            if (!date.value) {
-                document.getElementById('date-error').style.display = 'block';
-                isValid = false;
-            }
-            
-            const address = document.getElementById('service_address');
-            if (!address.value.trim()) {
-                document.getElementById('address-error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('address-error').style.display = 'none';
-            }
-            
-            const phone = document.getElementById('contact_phone');
-            if (!phone.value.trim()) {
-                document.getElementById('contact-error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('contact-error').style.display = 'none';
-            }
-            
-            if (!isValid) {
-                e.preventDefault();
-                // 滚动到第一个错误位置
-                const firstError = document.querySelector('.error-message[style="display: block;"]');
-                if (firstError) {
-                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }
-        });
-
-        // 初始化日期选择器的最小日期
-        window.onload = function() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('service_date').min = today;
-        };
-    </script>
 </body>
 </html>
