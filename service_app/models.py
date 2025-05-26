@@ -44,7 +44,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     final_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    payment_proof = models.ImageField(upload_to='payment_proofs/', null=True, blank=True)
+    payment_proof = CloudinaryField('payment_proof', blank=True, null=True)
     rating = models.PositiveSmallIntegerField(null=True, blank=True)  # 新增评分字段
     feedback = models.TextField(blank=True)  # 新增反馈字段
     order_token = models.CharField(max_length=32, unique=True)
