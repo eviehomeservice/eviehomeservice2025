@@ -14,5 +14,4 @@ urlpatterns = [
     path('admin/service/create/', views.create_service, name='create_service'),
     path('admin/service/<int:service_id>/edit/', views.edit_service, name='edit_service'),
     path('api/order/<str:order_token>/', views.api_order_detail, name='api_order_detail'),
-    path('my-orders/<str:phone_token>/', views.view_orders_by_token, name='view_orders_by_token'),
 ]
