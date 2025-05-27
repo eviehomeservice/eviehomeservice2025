@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-
+from .views import export_service_categories
 urlpatterns = [
     path('', views.service_list, name='service_list'),
     path('service/<int:service_id>/', views.user_service, name='user_service'),
