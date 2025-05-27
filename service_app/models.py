@@ -3,7 +3,20 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from cloudinary.models import CloudinaryField
+import hashlib
 
+class PhoneAccessToken(models.Model):
+    contact_phone = models.CharField(max_length=20, unique=True)
+    access_token = models.CharField(max_length=64, unique=True)
+
+    @staticmethod
+    def get_or_create_token(phone):
+        obj, created = PhoneAccessToken.objects.get_or_create(
+            contact_phone=phone,
+            defaults={'access_token': hashlib.sha256(phone.encode()).hexdigest()}
+        )
+        return obj.access_token
+        
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
