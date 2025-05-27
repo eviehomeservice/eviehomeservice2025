@@ -10,6 +10,10 @@ from datetime import date
 from django.http import JsonResponse
 from secrets import token_hex
 
+from django.core.serializers import serialize
+from django.http import HttpResponse
+from django.contrib.admin.views.decorators import staff_member_required
+
 def service_list(request):
     services = ServiceCategory.objects.all()
     user_orders = []
@@ -241,3 +245,10 @@ def api_order_detail(request, order_token):
         return JsonResponse(data)
     except Order.DoesNotExist:
         return JsonResponse({'error': '订单不存在'}, status=404)
+
+@staff_member_required
+def export_service_categories(request):
+    data = serialize('json', ServiceCategory.objects.all(), indent=2)
+    response = HttpResponse(data, content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="service_categories.json"'
+    return response
