@@ -13,16 +13,30 @@ from secrets import token_hex
 def service_list(request):
     services = ServiceCategory.objects.all()
     user_orders = []
+    submitted_phone = ''
+
+    # 从 POST 或 Cookie 获取手机号
     if request.method == 'POST' and 'contact_phone' in request.POST:
-        contact_phone = request.POST.get('contact_phone', '').strip()
-        user_orders = Order.objects.filter(contact_phone=contact_phone).order_by('-created_at')
+        submitted_phone = request.POST.get('contact_phone', '').strip()
+        user_orders = Order.objects.filter(contact_phone=submitted_phone).order_by('-created_at')
+        response = render(request, 'service_app/service_list.html', {
+            'services': services,
+            'user_orders': user_orders,
+            'submitted_phone': submitted_phone
+        })
+        # 写入 cookie，保存 30 天
+        response.set_cookie('contact_phone', submitted_phone, max_age=30*24*60*60)
+        return response
+    else:
+        submitted_phone = request.COOKIES.get('contact_phone', '')
+        if submitted_phone:
+            user_orders = Order.objects.filter(contact_phone=submitted_phone).order_by('-created_at')
+
     return render(request, 'service_app/service_list.html', {
         'services': services,
-        'user_orders': user_orders,  # 新增
-        'submitted_phone': request.POST.get('contact_phone', '')  # 新增
+        'user_orders': user_orders,
+        'submitted_phone': submitted_phone
     })
-
-    return render(request, 'service_app/service_list.html', {'services': services})
 
 def user_service(request, service_id):
     service = get_object_or_404(ServiceCategory, pk=service_id)
