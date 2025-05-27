@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import export_service_categories
+
 urlpatterns = [
     path('', views.service_list, name='service_list'),
     path('service/<int:service_id>/', views.user_service, name='user_service'),
@@ -13,6 +13,5 @@ urlpatterns = [
     path('admin/order/<int:order_id>/complete/', views.complete_order, name='complete_order'),
     path('admin/service/create/', views.create_service, name='create_service'),
     path('admin/service/<int:service_id>/edit/', views.edit_service, name='edit_service'),
-    path('api/order/<str:order_token>/', views.api_order_detail, name='api_order_detail'),
-    path('admin/export/service_categories/', views.export_service_categories, name='export_service_categories'),
+    path('api/order/<str:order_token>/', views.api_order_detail, name='api_order_detail'),    
 ]
