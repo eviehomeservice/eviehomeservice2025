@@ -1,4 +1,5 @@
 import uuid
+import hashlib
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -9,6 +10,8 @@ from django.utils.dateparse import parse_date
 from datetime import date
 from django.http import JsonResponse
 from secrets import token_hex
+from .models import PhoneAccessToken
+
 def service_list(request):
     services = ServiceCategory.objects.all()
     user_orders = []
@@ -35,6 +38,9 @@ def create_order(request, service_id):
             # 生成唯一订单 token
             order_token = token_hex(8)
 
+            contact_phone = request.POST.get('contact_phone', '').strip()
+            phone_token = PhoneAccessToken.get_or_create_token(contact_phone)
+            
             # 将数据暂存于 session
             request.session['pending_order'] = {
                 'service_id': service.id,
@@ -48,7 +54,7 @@ def create_order(request, service_id):
                 'final_price': str(service.fixed_price if service.fixed_price else service.prepay_amount),
                 'order_token': order_token
             }
-            return redirect('view_order', order_token=order_token)
+            return redirect('view_orders_by_token', phone_token=phone_token)
 
         except Exception as e:
             messages.error(request, f"创建订单失败: {str(e)}")
@@ -226,3 +232,14 @@ def api_order_detail(request, order_token):
         return JsonResponse(data)
     except Order.DoesNotExist:
         return JsonResponse({'error': '订单不存在'}, status=404)
+
+def view_orders_by_token(request, phone_token):
+    try:
+        token_obj = PhoneAccessToken.objects.get(access_token=phone_token)
+        orders = Order.objects.filter(contact_phone=token_obj.contact_phone).order_by('-created_at')
+        return render(request, 'service_app/order_list_by_token.html', {
+            'orders': orders,
+            'phone': token_obj.contact_phone
+        })
+    except PhoneAccessToken.DoesNotExist:
+        return render(request, 'service_app/order_list_by_token.html', {'orders': [], 'phone': None})
