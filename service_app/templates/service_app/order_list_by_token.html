@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的订单</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .order-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .order-card h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        .order-status {
+            font-weight: bold;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .status-pending { background-color: #FFEB3B; color: #000; }
+        .status-in_progress { background-color: #2196F3; }
+        .status-completed { background-color: #4CAF50; }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>我的订单</h1>
+
+    {% if phone %}
+        <p>手机号：<strong>{{ phone }}</strong></p>
+        {% if orders %}
+            {% for order in orders %}
+                <div class="order-card">
+                    <h3>{{ order.service.name }}</h3>
+                    <p><strong>订单编号：</strong>{{ order.order_token }}</p>
+                    <p><strong>服务时间：</strong>{{ order.service_date }}</p>
+                    <p><strong>服务地址：</strong>{{ order.service_address }}</p>
+                    <p><strong>状态：</strong> <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span></p>
+                    <p><strong>金额：</strong>{{ order.final_price }} {{ order.service.currency }}</p>
+                    <p><a href="{% url 'view_order' order.order_token %}">查看详情</a></p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>暂无订单。</p>
+        {% endif %}
+    {% else %}
+        <p>无效访问链接</p>
+    {% endif %}
+
+    <div class="footer">
+        <p>EVIE 安家服务平台</p>
+    </div>
+</body>
+</html>
